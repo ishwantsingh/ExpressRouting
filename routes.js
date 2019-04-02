@@ -34,7 +34,6 @@ routes.get("/:id", (req, res) => {
           .json({ error: `The post with the specified ID does not exist.` });
       }
       console.log(data);
-      // res.status(200).json(data);
     })
     .catch(error => {
       res.status(500).json({
@@ -44,13 +43,23 @@ routes.get("/:id", (req, res) => {
 });
 
 routes.post("/", (req, res) => {
-  db.insert({ title: req.body.title, contents: req.body.contents })
-    .then(data => {
-      res.json({ message: ` Post of id ${data.id} was added to the server` });
-    })
-    .catch(error => {
-      res.json("argrhrgrhr", error);
-    });
+  if (req.body.title && req.body.contents) {
+    db.insert({ title: req.body.title, contents: req.body.contents })
+      .then(data => {
+        res
+          .status(201)
+          .json({ message: ` Post of id ${data.id} was added to the server` });
+      })
+      .catch(error => {
+        res.status(500).json({
+          errorMessage: `There was an error while saving the post to the database, Error is => ${error}`
+        });
+      });
+  } else {
+    res
+      .status(400)
+      .json({ errorMessage: `Please provide title and contents for the post` });
+  }
 });
 
 routes.put("/:id", (req, res) => {
@@ -59,7 +68,7 @@ routes.put("/:id", (req, res) => {
     db.update(id, { title: req.body.title, contents: req.body.contents })
       .then(data => {
         if (data == 1) {
-          res.json({
+          res.status(200).json({
             successMessage: ` Post of id ${id} was updated on the server`
           });
         } else {
